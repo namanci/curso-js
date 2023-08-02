@@ -1,133 +1,108 @@
-//Declaración de Variables globales
-//Items
-let marca
-let mother
-let micro
-let memoria
-//Datos
-let precioItem
-let valorIva
-let impuestoItem = 0
-let impuestos = 0
-let subtotal = 0
+//Función constructora para crear los arrays que contendrán los componentes como objetos.
+function Componente(marca, modelo, precio) {
+    this.Marca = marca
+    this.Modelo = modelo
+    this.Precio = precio
+}
+//Creamos arrays vacíos de cada tipo de componente y "pusheamos" los objetos correspondientes para listar nuestros componentes disponibles (Stock).
+const motherboardsIntel = []
+motherboardsIntel.push(new Componente("ASUS", "B460m", 45000.40))
+motherboardsIntel.push(new Componente("MSI", "H510m", 56000.50))
 
-//Función para calcular los impuestos y el subtotal
-const calcularSubtotal = (precioItem, valorIva) => {
-    impuestoItem = precioItem * valorIva
-    impuestos = impuestos + impuestoItem
-    subtotal = subtotal + precioItem + impuestoItem
+const motherboardsAMD = []
+motherboardsAMD.push(new Componente("AsRock", "A320m", 42500.00))
+motherboardsAMD.push(new Componente("Gigabyte", "B450m", 52100.60))
+
+const procesadoresIntel = []
+procesadoresIntel.push(new Componente("Intel", "i3 10100f", 30000.00))
+procesadoresIntel.push(new Componente("Intel", "i5 10400f", 44525.25))
+procesadoresIntel.push(new Componente("Intel", "i7 10700k", 69985.50))
+
+const procesadoresAMD = []
+procesadoresAMD.push(new Componente("AMD", "Ryzen 3 3200g", 27500.00))
+procesadoresAMD.push(new Componente("AMD", "Ryzen 5 3600", 42750.40))
+procesadoresAMD.push(new Componente("AMD", "Ryzen 7 3800g", 68250.00))
+
+const memoriasRAM = []
+memoriasRAM.push(new Componente("Kingston", "8gb (2x4)", 14275.45))
+memoriasRAM.push(new Componente("Corsair", "16gb (2x8)", 28150.25))
+memoriasRAM.push(new Componente("HyperX", "32gb (2x16)", 53650.50))
+//Función simple para calcular impuestos.
+function calcularImpuesto(precio, impuesto) {
+    return precio * impuesto
+}
+//Obtenemos el tipo de componente para categorizarlos en el resumen.
+function obtenerTipoComponente(componente) {
+    if (motherboardsIntel.includes(componente) || motherboardsAMD.includes(componente)) {
+        return "Motherboard"
+    } else if (procesadoresIntel.includes(componente) || procesadoresAMD.includes(componente)) {
+        return "Procesador"
+    } else if (memoriasRAM.includes(componente)) {
+        return "Memoria RAM"
+    } else {
+        return "Componente"
+    }
+}
+//Función para mostrar en el resumen los detalles de cada componente seleccionado.
+function mostrarResumen(componente, impuesto, subtotal) {
+    const tipoComponente = obtenerTipoComponente(componente)
+    return `${tipoComponente}: ${componente.Marca} ${componente.Modelo}\nP/lista: $${componente.Precio.toFixed(2)} - Imp.: $${impuesto.toFixed(2)} - P/final: $${subtotal.toFixed(2)}\n`
 }
 
-//Se pide un nombre, si no se indica se lo nombra como "Invitado"
-let nombre = prompt("Por favor ingrese su nombre y apellido.")
+function armarPC() {
+    const nombreUsuario = prompt("Por favor ingrese su nombre y apellido.")
+    alert(`¡Bienvenid@, ${nombreUsuario}!\nA continuación seleccionará uno a uno los componentes para su PC.\n\nSe calculará el precio total a pagar y se detallará el valor total de los impuestos.`)
 
-if(nombre !== ""){
-    alert("Bienvenido " + nombre + "\n\nA continuación seleccionará uno a uno los componentes para su PC.\n\nSe calculará el precio total a pagar y se detallará el valor total de los impuestos.")
-}else {
-    alert("No ingresaste tu nombre, serás identificado como Invitado.\n\nA continuación seleccionará uno a uno los componentes para su PC.\n\nSe calculará el precio total a pagar y se detallará el valor total de los impuestos.")
-    nombre = "Invitado"
+    const marcaElegida = parseInt(prompt("Por favor ingrese el número de la Marca que desea:\n1. Intel\n2. AMD"))
+
+    let motherboardsDisponibles
+    let procesadoresDisponibles
+
+    if (marcaElegida === 1) {
+        motherboardsDisponibles = motherboardsIntel
+        procesadoresDisponibles = procesadoresIntel
+    } else if (marcaElegida === 2) {
+        motherboardsDisponibles = motherboardsAMD
+        procesadoresDisponibles = procesadoresAMD
+    } else {
+        alert("Opción no válida. Recargue la página y vuelva a intentarlo.")
+        return
+    }
+    //Funciones de Orden Superior. Utilizamos "map" para transformar los objetos y crear como string las opciones de componentes a elegir. Se utiliza "join" para agregar un salto de línea "\n" y mostrar las opciones de forma legible.
+    let opcionMotherboard = parseInt(prompt("Ingrese el número del Motherboard que desea:\n" + motherboardsDisponibles.map((m, i) => `${i + 1}. ${m.Modelo}`).join('\n')))
+    if (isNaN(opcionMotherboard) || opcionMotherboard < 1 || opcionMotherboard > motherboardsDisponibles.length) {
+        alert("Opción de Motherboard no válida. Recargue la página y vuelva a intentarlo.")
+        return
+    }
+
+    let opcionProcesador = parseInt(prompt("Ingrese el número del Procesador que desea:\n" + procesadoresDisponibles.map((p, i) => `${i + 1}. ${p.Modelo}`).join('\n')))
+    if (isNaN(opcionProcesador) || opcionProcesador < 1 || opcionProcesador > procesadoresDisponibles.length) {
+        alert("Opción de Procesador no válida. Recargue la página y vuelva a intentarlo.")
+        return
+    }
+
+    const opcionMemoriaRAM = parseInt(prompt("Seleccione el número de la Memoria RAM que desea:\n" + memoriasRAM.map((m, i) => `${i + 1}. ${m.Modelo}`).join('\n')))
+    if (isNaN(opcionMemoriaRAM) || opcionMemoriaRAM < 1 || opcionMemoriaRAM > memoriasRAM.length) {
+        alert("Opción de Memoria RAM no válida. Recargue la página y vuelva a intentarlo.")
+        return
+    }
+
+    const motherboardElegida = motherboardsDisponibles[opcionMotherboard - 1]
+    const procesadorElegido = procesadoresDisponibles[opcionProcesador - 1]
+    const memoriaRAMElegida = memoriasRAM[opcionMemoriaRAM - 1]
+    //Calculamos los impuestos de los componentes.
+    const impuestoMotherboard = calcularImpuesto(motherboardElegida.Precio, 0.105)
+    const impuestoProcesador = calcularImpuesto(procesadorElegido.Precio, 0.105)
+    const impuestoMemoriaRAM = calcularImpuesto(memoriaRAMElegida.Precio, 0.21)
+    //Calculamos el Total a pagar.
+    const subtotal = motherboardElegida.Precio + procesadorElegido.Precio + memoriaRAMElegida.Precio
+    const totalImpuestos = impuestoMotherboard + impuestoProcesador + impuestoMemoriaRAM
+    const totalAPagar = subtotal + totalImpuestos
+    //Obtenemos la fecha de emisión del resumen utilizando "Date".
+    const fechaEmision = new Date().toLocaleDateString()
+    //Mostramos el resumen.
+    const resumen = "Aquí tienes el resúmen de tu compra:\n\n" + mostrarResumen(motherboardElegida, impuestoMotherboard, motherboardElegida.Precio + impuestoMotherboard) + "\n" + mostrarResumen(procesadorElegido, impuestoProcesador, procesadorElegido.Precio + impuestoProcesador) + "\n" + mostrarResumen(memoriaRAMElegida, impuestoMemoriaRAM, memoriaRAMElegida.Precio + impuestoMemoriaRAM) + `\n\nImpuestos totales: $${totalImpuestos.toFixed(2)}\nTotal a pagar: $${totalAPagar.toFixed(2)}` + `\n\nFecha de emisión: ${fechaEmision}`
+    alert(resumen)
 }
-
-console.log(nombre)
-
-//Se pide una Marca y según la misma se ofrecen los Motherboards y Microprocesadores correspondientes
-while((marca !== 1) && (marca !== 2)){ //Se verifica que el usuario ingrese un valor correcto, si no lo hace se vuelve a pedir
-    marca = parseInt(prompt("Por favor ingrese el número de la Marca que desea:\n\n1 - INTEL\n2 - AMD\n\n"))
-}
-
-if(marca == 1){
-    marca = "INTEL"
-    valorIva = 0.15
-    while((mother !== 1) && (mother !== 2)){
-        mother = parseInt(prompt("Ingrese el número del Motherboard que desea:\n\n1 - ASUS B460m $45000\n2 - MSI H510m $56000"))
-    }
-    switch(mother){
-        case 1:
-            precioItem = 45000;
-            mother = "ASUS B460m";
-            break
-        case 2:
-            precioItem = 56000;
-            mother = "MSI H510m";
-            break
-    }
-    calcularSubtotal(precioItem, valorIva)
-
-    while((micro !== 1) && (micro !== 2) && (micro !== 3)){
-        micro = parseInt(prompt("Ingrese el número del Microprocesador que desea:\n\n1 - i3 10100f $30000\n2 - i5 10400f $45000\n3 - i7 10700k $70000\n\nImpuestos: " + impuestos + "\nSubtotal: " + subtotal))
-    }
-    switch(micro){
-        case 1:
-            precioItem = 30000;
-            micro = "i3 10ma Gen. 10100f";
-            break
-        case 2:
-            precioItem = 45000;
-            micro = "i5 10ma Gen. 10400f";
-            break
-        case 3:
-            precioItem = 70000;
-            micro = "i7 10ma Gen. 10700k";
-            break
-    }
-    calcularSubtotal(precioItem, valorIva)
-}else {
-    marca = "AMD"
-    valorIva = 0.15
-    while((mother !== 1) && (mother !== 2)){
-        mother = parseInt(prompt("Ingrese el número del Motherboard que desea:\n\n1 - AsRock A320m $42500\n2 - Gigabyte B450m $52100"))
-    }
-    switch(mother){
-        case 1:
-            precioItem = 42500;
-            mother = "AsRock A320m";
-            break
-        case 2:
-            precioItem = 52100;
-            mother = "Gigabyte B450m";
-            break
-    }
-    calcularSubtotal(precioItem, valorIva)
-
-    while((micro !== 1) && (micro !== 2) && (micro !== 3)){
-        micro = parseInt(prompt("Ingrese el número del Microprocesador que desea:\n\n1 - Ryzen 3 3200g $28000\n2 - Ryzen 5 3600 $42500\n3 - Ryzen 7 3800g $68250\n\nImpuestos: " + impuestos + "\nSubtotal: " + subtotal))
-    }
-    switch(micro){
-        case 1:
-            precioItem = 28000;
-            micro = "Ryzen 3 3200g AM4";
-            break
-        case 2:
-            precioItem = 42500;
-            micro = "Ryzen 5 3600 AM4";
-            break
-        case 3:
-            precioItem = 68250;
-            micro = "Ryzen 7 3800g AM4";
-            break
-    }
-    calcularSubtotal(precioItem, valorIva)
-}
-//Se dan a elegir el resto de componentes ya fuera del "if" debido a que son compatibles con ambas Marcas
-while((memoria !== 1) && (memoria !== 2) && (memoria !== 3)){
-    memoria = parseInt(prompt("Seleccione el número de la Memoria RAM que desea:\n\n1 - 8GB Combo 2x4 Kingston $15000\n2 - 16GB Combo 2x8 Corsair $28000\n3 - 32GB Combo 2x16 HyperX $54000\n\nImpuestos: " + impuestos + "\nSubtotal: " + subtotal))
-}
-valorIva = 0.21
-switch(memoria){
-    case 1:
-        precioItem = 15000;
-        memoria = "8GB Kingston";
-        break
-    case 2:
-        precioItem = 28000;
-        memoria = "16GB Corsair";
-        break
-    case 3:
-        precioItem = 54000;
-        memoria = "32GB HyperX";
-        break
-}
-calcularSubtotal(precioItem, valorIva)
-
-//"alert" con resúmen de la compra, valor de impuestos y total a pagar
-alert("Aquí tienes el resúmen de tu compra " + nombre + ":\n\nMarca: " + marca + "\nMotherboard: " + mother + "\nMicroprocesador: " + micro + "\nMemoria RAM: " + memoria + "\n\nImpuestos: $" + impuestos + "\nTotal a pagar: $" + subtotal)
+//Ejecutamos el armador de PC llamando a la función "armarPC".
+armarPC()
