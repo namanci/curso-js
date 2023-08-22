@@ -1,3 +1,14 @@
+const app = document.getElementById("aplicacion")
+const mensaje = document.createElement("div")
+mensaje.className = "alert alert-primary"
+let nombreUsuario
+const mostrarNombre = document.createElement("div")
+mostrarNombre.className = "left"
+const contenedorProductos = document.createElement("div")
+contenedorProductos.id = "contenedor-productos"
+let paso
+let marcaElegida
+
 //Función constructora para crear los arrays que contendrán los componentes como objetos.
 function Componente(marca, modelo, precio) {
     this.Marca = marca
@@ -27,82 +38,214 @@ const memoriasRAM = []
 memoriasRAM.push(new Componente("Kingston", "8gb (2x4)", 14275.45))
 memoriasRAM.push(new Componente("Corsair", "16gb (2x8)", 28150.25))
 memoriasRAM.push(new Componente("HyperX", "32gb (2x16)", 53650.50))
-//Función simple para calcular impuestos.
-function calcularImpuesto(precio, impuesto) {
-    return precio * impuesto
+
+
+function nombrarUsuario() {
+    mensaje.innerText = "Por favor, ingresa tu nombre:"
+
+    const nombreInput = document.createElement("input")
+    nombreInput.type = "text"
+    nombreInput.className = "form-control mb-2"
+
+    const comenzarBoton = document.createElement("button")
+    comenzarBoton.innerText = "Comenzar"
+    comenzarBoton.className = "btn btn-primary"
+
+    comenzarBoton.addEventListener("click", function () {
+        nombreUsuario = nombreInput.value
+        if (nombreUsuario.trim() !== "") {
+            app.removeChild(mensaje)
+            app.removeChild(nombreInput)
+            app.removeChild(comenzarBoton)
+            mostrarNombre.innerText = `Usuario: ${nombreUsuario}`
+            app.appendChild(mostrarNombre)
+            localStorage.setItem("nombreUsuario", JSON.stringify(nombreUsuario))
+            localStorage.setItem("paso", JSON.stringify(paso + 1))
+            paso = JSON.parse(localStorage.getItem("paso"))
+            armarPC()
+        }
+    })
+    app.appendChild(mensaje)
+    app.appendChild(nombreInput)
+    app.appendChild(comenzarBoton)
 }
-//Obtenemos el tipo de componente para categorizarlos en el resumen.
-function obtenerTipoComponente(componente) {
-    if (motherboardsIntel.includes(componente) || motherboardsAMD.includes(componente)) {
-        return "Motherboard"
-    } else if (procesadoresIntel.includes(componente) || procesadoresAMD.includes(componente)) {
-        return "Procesador"
-    } else if (memoriasRAM.includes(componente)) {
-        return "Memoria RAM"
-    } else {
-        return "Componente"
+
+function seleccionarMarca() {
+    const imagen = document.createElement("div")
+    imagen.className = "row"
+    imagen.innerHTML = `
+        <div class="col-md-6">
+            <img src="./image/intel_logo.jpg" alt="Intel" class="img-thumbnail" id="intel">
+        </div>
+        <div class="col-md-6">
+            <img src="./image/amd_logo.jpg" alt="AMD" class="img-thumbnail" id="amd">
+        </div>`
+
+    mensaje.innerText = "Por favor, elige la Marca que deseas:"
+
+    app.appendChild(mensaje)
+    app.appendChild(imagen)
+
+    document.getElementById("intel").addEventListener("click", function() {
+        console.log("Intel seleccionado")
+        app.removeChild(mensaje)
+        app.removeChild(imagen)
+        marcaElegida = "intel"
+        localStorage.setItem("marcaElegida", JSON.stringify(marcaElegida))
+        localStorage.setItem("paso", JSON.stringify(paso + 1))
+        paso = JSON.parse(localStorage.getItem("paso"))
+        console.log(paso)
+        armarPC()
+    })
+
+    document.getElementById("amd").addEventListener("click", function() {
+        console.log("AMD seleccionado")
+        app.removeChild(mensaje)
+        app.removeChild(imagen)
+        marcaElegida = "amd"
+        localStorage.setItem("marcaElegida", JSON.stringify(marcaElegida))
+        localStorage.setItem("paso", JSON.stringify(paso + 1))
+        paso = JSON.parse(localStorage.getItem("paso"))
+        console.log(paso)
+        armarPC()
+    })
+}
+
+function agregarAlCarrito(producto) {
+    let carrito = JSON.parse(localStorage.getItem("carrito")) || [];
+    carrito.push(producto);
+    localStorage.setItem("carrito", JSON.stringify(carrito));
+}
+
+function crearTarjeta(producto) {
+    const tarjeta = document.createElement("div")
+    tarjeta.classList.add("card", "m-3")
+
+    const contenido = `
+        <div class="card-body">
+        <h5 class="card-title">${producto.Marca} ${producto.Modelo}</h5>
+        <p class="card-text">Precio: $${producto.Precio.toFixed(2)}</p>
+        </div>`
+
+    tarjeta.innerHTML = contenido
+
+    tarjeta.onclick = () => {
+        console.log(`Seleccionaste el producto: ${producto.Marca} ${producto.Modelo}`)
+        agregarAlCarrito(producto)
+        const contenedor = document.getElementById("contenedor-productos")
+        while (contenedor.firstChild) {
+            contenedor.removeChild(contenedor.firstChild)
+        }
+        localStorage.setItem("paso", JSON.stringify(paso + 1))
+        paso = JSON.parse(localStorage.getItem("paso"))
+        armarPC()
     }
+
+    return tarjeta
 }
-//Función para mostrar en el resumen los detalles de cada componente seleccionado.
-function mostrarResumen(componente, impuesto, subtotal) {
-    const tipoComponente = obtenerTipoComponente(componente)
-    return `${tipoComponente}: ${componente.Marca} ${componente.Modelo}\nP/lista: $${componente.Precio.toFixed(2)} - Imp.: $${impuesto.toFixed(2)} - P/final: $${subtotal.toFixed(2)}\n`
+
+function mostrarProductos(productos) {
+    app.appendChild(mensaje)
+    app.appendChild(contenedorProductos)   
+    productos.forEach(producto => {
+        const tarjeta = crearTarjeta(producto)
+        contenedorProductos.appendChild(tarjeta)
+    })
+}
+
+const calcularImpuesto = (precio) => precio * 0.21
+
+function mostrarResumen() {
+    carrito = JSON.parse(localStorage.getItem("carrito"))
+    let subTotal = 0
+    let impuestoTotal = 0
+    carrito.forEach(producto => {
+        const tarjetaResumen = document.createElement("div")
+        tarjetaResumen.classList.add("card", "m-3")
+        const impuestoProducto = calcularImpuesto(producto.Precio)
+
+        const contenido = `
+            <div style="cursor: default;" class="card-body">
+                <h5 class="card-title">${producto.Marca} ${producto.Modelo}</h5>
+                <p class="card-text">Precio: $${producto.Precio.toFixed(2)}</p>
+                <p class="card-text">Impuestos: $${impuestoProducto.toFixed(2)}</p>
+            </div>`
+        tarjetaResumen.innerHTML = contenido
+        
+        subTotal += producto.Precio
+        impuestoTotal += impuestoProducto
+        app.appendChild(tarjetaResumen)
+    })
+    let total = subTotal + impuestoTotal
+    const mostrarSub = document.createElement("div")
+    mostrarSub.innerText = `Subtotal: $${subTotal.toFixed(2)}`
+    mostrarSub.className = "left"
+    const mostrarIT = document.createElement("div")
+    mostrarIT.innerText = `Impuestos: $${impuestoTotal.toFixed(2)}`
+    mostrarIT.className = "left"
+    const mostrarTotal = document.createElement("div")
+    mostrarTotal.innerText = `Total a pagar: $${total.toFixed(2)}`
+    mostrarTotal.className = "left"
+    const terminarBoton = document.createElement("button")
+    terminarBoton.innerText = "Terminar"
+    terminarBoton.className = "btn btn-primary"
+    terminarBoton.addEventListener("click", function () {
+        localStorage.clear()
+        const contenedor = document.getElementById("aplicacion")
+        while (contenedor.firstChild) {
+            contenedor.removeChild(contenedor.firstChild)
+        }
+        paso = 0
+        armarPC()
+    })
+    app.appendChild(mostrarSub)
+    app.appendChild(mostrarIT)
+    app.appendChild(mostrarTotal)
+    app.appendChild(terminarBoton)
 }
 
 function armarPC() {
-    const nombreUsuario = prompt("Por favor ingrese su nombre y apellido.")
-    alert(`¡Bienvenid@, ${nombreUsuario}!\nA continuación seleccionará uno a uno los componentes para su PC.\n\nSe calculará el precio total a pagar y se detallará el valor total de los impuestos.`)
-
-    const marcaElegida = parseInt(prompt("Por favor ingrese el número de la Marca que desea:\n1. Intel\n2. AMD"))
-
-    let motherboardsDisponibles
-    let procesadoresDisponibles
-
-    if (marcaElegida === 1) {
-        motherboardsDisponibles = motherboardsIntel
-        procesadoresDisponibles = procesadoresIntel
-    } else if (marcaElegida === 2) {
-        motherboardsDisponibles = motherboardsAMD
-        procesadoresDisponibles = procesadoresAMD
-    } else {
-        alert("Opción no válida. Recargue la página y vuelva a intentarlo.")
-        return
+    switch(paso){
+        case 0:
+            nombrarUsuario()
+        break
+        case 1:
+            seleccionarMarca()
+        break
+        case 2:
+            mensaje.innerText = "Elige el Motherboard que deseas:"
+            marcaElegida = JSON.parse(localStorage.getItem("marcaElegida"))
+            if(marcaElegida === "intel") {
+                mostrarProductos(motherboardsIntel)
+            } else {
+                mostrarProductos(motherboardsAMD)
+            }
+            
+        break
+        case 3:
+            mensaje.innerText = "Elige el Microprocesador que deseas:"
+            marcaElegida = JSON.parse(localStorage.getItem("marcaElegida"))
+            if(marcaElegida === "intel") {
+                mostrarProductos(procesadoresIntel)
+            } else {
+                mostrarProductos(procesadoresAMD)
+            }
+        break
+        case 4:
+            mensaje.innerText = "Elige la Memoria RAM que deseas:"
+            mostrarProductos(memoriasRAM)
+        break
+        case 5:
+            mensaje.innerText = "Este es tu resumen:"
+            mostrarResumen()
+        break
     }
-    //Funciones de Orden Superior. Utilizamos "map" para transformar los objetos y crear como string las opciones de componentes a elegir. Se utiliza "join" para agregar un salto de línea "\n" y mostrar las opciones de forma legible.
-    let opcionMotherboard = parseInt(prompt("Ingrese el número del Motherboard que desea:\n" + motherboardsDisponibles.map((m, i) => `${i + 1}. ${m.Modelo}`).join('\n')))
-    if (isNaN(opcionMotherboard) || opcionMotherboard < 1 || opcionMotherboard > motherboardsDisponibles.length) {
-        alert("Opción de Motherboard no válida. Recargue la página y vuelva a intentarlo.")
-        return
-    }
-
-    let opcionProcesador = parseInt(prompt("Ingrese el número del Procesador que desea:\n" + procesadoresDisponibles.map((p, i) => `${i + 1}. ${p.Modelo}`).join('\n')))
-    if (isNaN(opcionProcesador) || opcionProcesador < 1 || opcionProcesador > procesadoresDisponibles.length) {
-        alert("Opción de Procesador no válida. Recargue la página y vuelva a intentarlo.")
-        return
-    }
-
-    const opcionMemoriaRAM = parseInt(prompt("Seleccione el número de la Memoria RAM que desea:\n" + memoriasRAM.map((m, i) => `${i + 1}. ${m.Modelo}`).join('\n')))
-    if (isNaN(opcionMemoriaRAM) || opcionMemoriaRAM < 1 || opcionMemoriaRAM > memoriasRAM.length) {
-        alert("Opción de Memoria RAM no válida. Recargue la página y vuelva a intentarlo.")
-        return
-    }
-
-    const motherboardElegida = motherboardsDisponibles[opcionMotherboard - 1]
-    const procesadorElegido = procesadoresDisponibles[opcionProcesador - 1]
-    const memoriaRAMElegida = memoriasRAM[opcionMemoriaRAM - 1]
-    //Calculamos los impuestos de los componentes.
-    const impuestoMotherboard = calcularImpuesto(motherboardElegida.Precio, 0.105)
-    const impuestoProcesador = calcularImpuesto(procesadorElegido.Precio, 0.105)
-    const impuestoMemoriaRAM = calcularImpuesto(memoriaRAMElegida.Precio, 0.21)
-    //Calculamos el Total a pagar.
-    const subtotal = motherboardElegida.Precio + procesadorElegido.Precio + memoriaRAMElegida.Precio
-    const totalImpuestos = impuestoMotherboard + impuestoProcesador + impuestoMemoriaRAM
-    const totalAPagar = subtotal + totalImpuestos
-    //Obtenemos la fecha de emisión del resumen utilizando "Date".
-    const fechaEmision = new Date().toLocaleDateString()
-    //Mostramos el resumen.
-    const resumen = "Aquí tienes el resúmen de tu compra:\n\n" + mostrarResumen(motherboardElegida, impuestoMotherboard, motherboardElegida.Precio + impuestoMotherboard) + "\n" + mostrarResumen(procesadorElegido, impuestoProcesador, procesadorElegido.Precio + impuestoProcesador) + "\n" + mostrarResumen(memoriaRAMElegida, impuestoMemoriaRAM, memoriaRAMElegida.Precio + impuestoMemoriaRAM) + `\n\nImpuestos totales: $${totalImpuestos.toFixed(2)}\nTotal a pagar: $${totalAPagar.toFixed(2)}` + `\n\nFecha de emisión: ${fechaEmision}`
-    alert(resumen)
 }
-//Ejecutamos el armador de PC llamando a la función "armarPC".
+
+paso = JSON.parse(localStorage.getItem("paso")) || 0
+if(paso > 0) {
+    nombreUsuario = JSON.parse(localStorage.getItem("nombreUsuario"))
+    mostrarNombre.innerText = `Usuario: ${nombreUsuario}`
+    app.appendChild(mostrarNombre)
+}
 armarPC()

@@ -1,0 +1,12 @@
+.card-body {
+    cursor: pointer;
+}
+
+.card-body:hover {
+    box-shadow: lightgrey 0px 0px 6px;
+}
+
+.left {
+    text-align: left;
+    margin-left: 20px;
+}
